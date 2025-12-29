@@ -1,0 +1,70 @@
+<div class="chess-puzzle-container" [style.--board-width.px]="boardWidth()">
+
+  <div class="chessground-container">
+    <div #board class="chessground brown cburnett"></div>
+    
+    @if (moveFeedback(); as fb) {
+      <div class="feedback-overlay" 
+           [style.top]="getFeedbackCoords(fb.key).top"
+           [style.left]="getFeedbackCoords(fb.key).left">
+           
+        <div class="feedback-badge" 
+             [class.correct]="fb.type === 'correct'" 
+             [class.incorrect]="fb.type === 'incorrect'">
+          @if (fb.type === 'correct') {
+            <i class="fas fa-check"></i>
+          } @else {
+            <i class="fas fa-times"></i>
+          }
+        </div>
+      </div>
+    }
+
+    <div class="resize-handle" (mousedown)="onResizeStart($event)" title="Drag to resize"></div>
+  </div>
+    
+  @if (promotionData()) {
+    <div class="promotion-dialog">
+      @for (piece of promotionChoices; track piece) {
+        <div 
+          class="promotion-piece {{orientation}} {{piece}}"
+          (click)="onPromotionSelect(piece)">
+        </div>
+      }
+    </div>
+  }
+
+  <div class="controls-container">
+    @if(!isReviewing()) {
+      <div class="hint-controls">
+        <button (click)="viewSolution()" class="btn btn-light" [disabled]="isReviewing()">
+          <i class="fas fa-lightbulb" style="margin-right: 5px; color: #ffc107;"></i>
+          Show Solution (Hint)
+        </button>
+      </div>
+    }
+
+    @if(isReviewing()) {
+      <div class="review-controls">
+        <button (click)="goToStart()" [disabled]="reviewMoveIndex() <= -1" class="btn-control" title="Start">
+          <i class="fas fa-fast-backward"></i>
+        </button>
+        <button (click)="goPrevious()" [disabled]="reviewMoveIndex() <= -1" class="btn-control" title="Previous">
+          <i class="fas fa-step-backward"></i>
+        </button>
+        
+        <span class="review-move-counter">
+          {{ reviewMoveIndex() + 1 }} / {{ solution.length }}
+        </span>
+        
+        <button (click)="goNext()" [disabled]="reviewMoveIndex() >= solution.length - 1" class="btn-control" title="Next">
+          <i class="fas fa-step-forward"></i>
+        </button>
+        <button (click)="goToEnd()" [disabled]="reviewMoveIndex() >= solution.length - 1" class="btn-control" title="End">
+          <i class="fas fa-fast-forward"></i>
+        </button>
+      </div>
+    }
+  </div>
+
+</div>

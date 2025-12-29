@@ -1,0 +1,161 @@
+<div class="deck-list-container" (click)="closeDropdown()">
+  <h2>AnkiChess</h2>
+
+  <button (click)="openCreateDeckModal()" class="btn btn-primary create-deck-btn"
+    [class.disabled]="(importProgress() && !importProgress()?.isComplete) ">
+    <i class="fas fa-plus"></i> Create New Deck
+  </button>
+
+  <hr>
+
+  @if (importProgress(); as progress) {
+  <div class="import-feedback global-feedback">
+    @if (progress.isError) {
+    <p class="error-message">❌ {{ progress.message }}</p>
+    } @else if (progress.isComplete) {
+    <p class="success-message">✅ {{ progress.message }}</p>
+    } @else {
+    <p class="info-message">
+      ⏳ {{ progress.message }}
+      @if (progress.totalToImport && progress.totalToImport > 0) {
+      <span style="font-weight: bold; margin-left: 8px;">
+        ({{ progress.importedCount.toLocaleString() }} / {{ progress.totalToImport.toLocaleString() }})
+      </span>
+      } @else if (progress.processedCount > 0) {
+      <span style="font-weight: 500; margin-left: 8px;">
+        (Read: {{ progress.processedCount.toLocaleString() }})
+      </span>
+      }
+    </p>
+    @if (progress.totalToImport && progress.totalToImport > 0) {
+    <progress [value]="progress.importedCount" [max]="progress.totalToImport"
+      style="width: 100%; height: 10px; margin-top: 5px;"></progress>
+    } @else if (progress.processedCount > 0 && !progress.totalToImport) {
+    <progress style="width: 100%; height: 10px; margin-top: 5px;"></progress>
+    }
+    }
+    @if (progress.isComplete || progress.isError) {
+    <button (click)="apiService.clearImportProgress()" class="btn btn-sm btn-secondary" style="margin-top: 10px;">
+      Close
+    </button>
+    }
+  </div>
+  <hr>
+  }
+
+  @if (isLoading() && decks().length === 0) {
+  <div>Loading decks...</div>
+  }
+
+  @if (error() && !isLoading()) {
+  <div class="error-message">Loading Error: {{ error() }}</div>
+  }
+
+  @if (decks().length > 0) {
+  <div class="decks-grid">
+    @for (deck of decks(); track deck.id) {
+    <div class="deck-card">
+      <div class="deck-info">
+        <span class="deck-name" title="{{ deck.name }}">{{ deck.name }}</span>
+        <div class="deck-counts">
+          <span class="count new" title="New">New: {{ deck.new_count }} </span>
+          <span class="count learn" title="Learning">Learn: {{ deck.learn_count }} </span>
+          <span class="count due" title="Due">Due: {{ deck.due_count }} </span>
+        </div>
+      </div>
+
+      <div class="deck-actions">
+        <button (click)="navigateToStudy(deck.id)" class="btn btn-success"
+          [disabled]="(importProgress() && !importProgress()?.isComplete)">
+          <i class="fas fa-book-open"></i> Study
+        </button>
+
+        <div class="dropdown-container">
+          <button (click)="toggleDropdown(deck.id, $event)" class="btn btn-secondary btn-kebab"
+            [disabled]="(importProgress() && !importProgress()?.isComplete)">
+            <i class="fas fa-ellipsis-v"></i>
+          </button>
+
+          @if (openDropdownId() === deck.id) {
+          <div class="dropdown-menu" (click)="$event.stopPropagation()">
+            <button (click)="openImportModal(deck)"
+              [disabled]="!dbStateService.dbStatus()?.dbExists || dbStateService.isDbBusy()"
+              [title]="dbStateService.isDbBusy() ? 'Database busy...' : 'Import puzzles'">
+              <i class="fas fa-file-import"></i> Import
+            </button>
+            <button (click)="exportDeck(deck.id, deck.name)">
+              <i class="fas fa-file-export"></i> Export CSV
+            </button>
+            <button (click)="navigateToBrowseCards(deck.id)">
+              <i class="fas fa-search"></i> Browse
+            </button>
+            <button (click)="navigateToSettingsDeck(deck.id)">
+              <i class="fas fa-cog"></i> Settings
+            </button>
+            <button (click)="navigateToAddCard(deck.id)">
+              <i class="fas fa-plus-circle"></i> Add Card
+            </button>
+            <hr>
+            <button (click)="deleteDeck(deck.id, deck.name)" class="text-danger">
+              <i class="fas fa-trash-alt"></i> Delete
+            </button>
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+    }
+  </div>
+  } @else {
+  @if (!isLoading() && !error()) {
+  <p class="no-decks">No decks found. Create a new one!</p>
+  }
+  }
+
+  @if (showImportModalForDeck(); as selectedDeck) {
+  <app-import-options [deckId]="selectedDeck.id" [deckName]="selectedDeck.name" (closeModal)="closeImportModal()"
+    (importStarted)="onImportStarted($event)" (importTriggered)="onImportCompleted($event)"> </app-import-options>
+  }
+
+  @if (showDeleteModal()) {
+  <app-modal title="Confirm Deletion" [message]="'Are you sure you want to delete the deck?'" confirmText="Delete"
+    cancelText="Cancel" (confirm)="confirmDelete()" (cancel)="cancelDelete()" (close)="cancelDelete()"></app-modal>
+  }
+
+  @if (showSettingsForDeck(); as selectedDeck) {
+  <app-deck-settings [deckId]="selectedDeck.id" [deckName]="selectedDeck.name" (closeModal)="closeSettingsModal()"
+    (settingsSaved)="closeSettingsModal(); loadDecks()">
+  </app-deck-settings>
+  }
+
+  @if (showCreateModal()) {
+  <div class="modal-overlay" (click)="closeCreateDeckModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h3>Create New Deck</h3>
+      <div class="form-group">
+        <label for="newDeckName"
+          style="display: block; margin-bottom: 8px; font-weight: bold; color: #555;">Name:</label>
+        <input type="text" id="newDeckName" [(ngModel)]="newDeckName" (keyup.enter)="confirmCreateDeck()"
+          class="form-control" placeholder="e.g. King's Gambit" maxlength="50" autofocus
+          style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 1rem;" />
+        <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+          <small style="color: #666;">Enter a unique name for your deck</small>
+          <small [style.color]="newDeckName().length >= 50 ? 'red' : '#999'">{{ newDeckName().length }} / 50</small>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" (click)="closeCreateDeckModal()">Cancel</button>
+        <button class="btn btn-primary" (click)="confirmCreateDeck()" [disabled]="!newDeckName().trim()">Create</button>
+      </div>
+    </div>
+  </div>
+  }
+
+  @if (showDbMissingModal()) {
+  <app-modal title="Database Missing"
+    message="To import puzzles, you must install the local Lichess database first. Use the database icon in the bottom right corner."
+    confirmText="I Understand" cancelText="" (confirm)="showDbMissingModal.set(false)"
+    (close)="showDbMissingModal.set(false)">
+  </app-modal>
+  }
+</div>

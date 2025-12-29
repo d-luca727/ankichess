@@ -1,0 +1,153 @@
+<div class="study-container">
+
+  <div class="study-header">
+    <a routerLink="/" class="back-link">
+      <span class="arrow">&larr;</span> Back to Decks
+    </a>
+    <h1 class="study-title" style="margin:0; font-size: 1.5rem;">Study Session</h1>
+    <div></div>
+  </div>
+
+  @if (currentCard(); as card) {
+  <div class="study-layout">
+
+    <div class="left-panel">
+
+      @if (showAnswerButtons()) {
+      <button (click)="toggleAnalysis()" class="btn-analyze">
+        <i class="fas" [class.fa-microscope]="!isAnalyzing()" [class.fa-puzzle-piece]="isAnalyzing()"></i>
+        {{ isAnalyzing() ? 'Back to Puzzle' : 'Analyze Board' }}
+      </button>
+      }
+
+      @if (showAnswerButtons()) {
+      <div class="card-info-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <p class="comment-title" style="margin: 0;"><i class="fas fa-comment-alt"></i> Comment</p>
+
+          @if (!isEditingComment()) {
+          <button (click)="startEditComment()" class="btn-icon" title="Edit Comment"
+            style="background:none; border:none; cursor:pointer; color:#6c757d;">
+            <i class="fas fa-pen"></i>
+          </button>
+          }
+        </div>
+
+        @if (isEditingComment()) {
+        <textarea [(ngModel)]="commentText" class="form-control" rows="4"
+          style="width: 100%; box-sizing: border-box; margin-bottom: 10px; font-family: inherit;">
+                  </textarea>
+        <div style="display: flex; gap: 8px; justify-content: flex-end;">
+          <button (click)="cancelEditComment()" class="btn btn-sm btn-secondary"
+            style="padding: 4px 8px; font-size: 0.85rem;">Cancel</button>
+          <button (click)="saveComment()" class="btn btn-sm btn-primary"
+            style="padding: 4px 8px; font-size: 0.85rem; background-color: #007bff; color: white; border: none; border-radius: 4px;">Save</button>
+        </div>
+        } @else {
+        @if (card.comment) {
+        <app-interactive-comment [text]="card.comment" [rootFen]="card.fen" [solution]="card.moves"
+          (variationSelected)="handleCommentVariation($event)">
+        </app-interactive-comment>
+        } @else {
+        <p style="font-style: italic; color: #999; font-size: 0.9rem;">No comment provided.</p>
+        }
+        }
+      </div>
+      }
+      <div class="card-info-box" style="font-size: 0.9rem; color: #666;">
+        <p style="margin:0;"><strong>{{ card.puzzleId }}</strong></p>
+
+        <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ddd;">
+
+        <p style="margin:5px 0 0;">
+          <strong>Puzzle:</strong>
+          <a [href]="card.gameUrl || 'https://lichess.org/training/' + card.puzzleId" target="_blank"
+            style="color:#007bff; text-decoration:none;">
+            {{ card.puzzleId }} <i class="fas fa-external-link-alt"></i>
+          </a>
+        </p>
+
+        @if(card.rating) {
+        <p style="margin:5px 0 0;">
+          <strong>Rating:</strong> {{ card.rating }}
+          <span style="font-size:0.85em; color:#888;">(±{{ card.ratingDeviation }})</span>
+        </p>
+        }
+
+        <div style="margin-top:8px; display:flex; gap:15px; color:#555; justify-content: center;">
+          <span title="Popularity"><i class="fas fa-heart"></i> {{ card.popularity }}</span>
+          <span title="Number of Plays"><i class="fas fa-play"></i> {{ card.nbPlays }}</span>
+        </div>
+
+        @if(card.themes && showAnswerButtons()) {
+        <p style="margin:8px 0 0; line-height: 1.4;">
+          <strong>Themes:</strong><br>
+          <span style="font-size: 0.85em; color: #555;">{{ card.themes.split(' ').join(', ') }}</span>
+        </p>
+        }
+      </div>
+
+    </div>
+
+    <div class="center-panel">
+      @if (!isAnalyzing()) {
+      <app-chess-puzzle [fen]="card.fen" [solution]="card.moves" [orientation]="card.orientation"
+        [setupMove]="card.hasSetupMove" (puzzleSolved)="handlePuzzleSolved()" (incorrectMove)="handleIncorrectMove()">
+      </app-chess-puzzle>
+      } @else {
+      <app-chess-analysis [initialFen]="card.fen" [moveList]="card.moves" [orientation]="card.orientation">
+      </app-chess-analysis>
+      }
+    </div>
+
+    <div class="right-panel">
+
+      @if (!showAnswerButtons() && !feedbackMessage()) {
+      <div class="turn-indicator">
+        <div class="turn-text">
+          {{ card.orientation === 'white' ? 'White' : 'Black' }} to Move
+        </div>
+        <div class="turn-subtext">Find the best move</div>
+      </div>
+      }
+
+      @if (feedbackMessage()) {
+      <div class="feedback-box" [class.incorrect]="incorrectMove()" [class.correct]="!incorrectMove()">
+        {{ feedbackMessage() }}
+      </div>
+      }
+
+      @if (showAnswerButtons()) {
+      <div class="rating-buttons">
+        <button (click)="rateCard(1)" class="btn btn-danger">
+          Again <span class="interval">{{ card.againSecs | formatSeconds }}</span>
+        </button>
+        <button (click)="rateCard(2)" class="btn btn-warning">
+          Hard <span class="interval">{{ card.hardSecs | formatSeconds }}</span>
+        </button>
+        <button (click)="rateCard(3)" class="btn btn-success" [disabled]="incorrectMove()">
+          Good <span class="interval">{{ card.goodSecs | formatSeconds }}</span>
+        </button>
+        <button (click)="rateCard(4)" class="btn btn-info" [disabled]="incorrectMove()">
+          Easy <span class="interval">{{ card.easySecs | formatSeconds }}</span>
+        </button>
+      </div>
+      }
+
+    </div>
+  </div>
+  } @else {
+  <div class="state-container">
+    @if (feedbackMessage()) {
+    <div class="finished-message">
+      <span class="finished-icon" style="font-size: 3rem; display:block; margin-bottom:1rem;">🎉</span>
+      <p style="font-size: 1.2rem;">{{ feedbackMessage() }}</p>
+      <a routerLink="/" class="btn btn-primary" style="margin-top: 20px;">Return to Decks</a>
+    </div>
+    } @else {
+    <div class="loading-spinner"></div>
+    <p>Loading the next card...</p>
+    }
+  </div>
+  }
+</div>

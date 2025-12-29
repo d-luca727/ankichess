@@ -1,0 +1,179 @@
+<div class="modal-overlay" (click)="close()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <h3>Import Options for "{{ deckName }}"</h3>
+      <button class="close-button" (click)="close()" [disabled]="isImporting()">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      
+      <div class="tabs">
+        <button class="tab-btn" [class.active]="activeTab() === 'db'" (click)="setActiveTab('db')" [disabled]="isImporting()">
+          Lichess Database
+        </button>
+        <button class="tab-btn" [class.active]="activeTab() === 'csv'" (click)="setActiveTab('csv')" [disabled]="isImporting()">
+          CSV / File
+        </button>
+      </div>
+
+      @if (activeTab() === 'db') {
+        <div class="options-grid">
+          
+          <div class="form-group">
+            <label>
+              Min Rating
+              <span class="info-badge" tabindex="0" data-tooltip="Minimum puzzle rating to include.">i</span>
+            </label>
+            <input type="number" [(ngModel)]="minRating" placeholder="600">
+          </div>
+
+          <div class="form-group">
+            <label>
+              Max Rating
+              <span class="info-badge" tabindex="0" data-tooltip="Maximum puzzle rating to include.">i</span>
+            </label>
+            <input type="number" [(ngModel)]="maxRating" placeholder="2900">
+          </div>
+          
+          <div class="form-group">
+             <label>
+              Limit
+              <span class="info-badge align-right" tabindex="0" data-tooltip="Max number of puzzles to import.">i</span>
+             </label>
+             <input type="number" [(ngModel)]="limit" placeholder="1000">
+          </div>
+
+          <div class="form-group">
+            <label>
+              Min Popularity
+              <span class="info-badge" tabindex="0" data-tooltip="Min popularity (-100 to 100).">i</span>
+            </label>
+            <input type="number" [(ngModel)]="minPopularity" placeholder="0">
+          </div>
+
+          <div class="form-group">
+            <label>
+              Max Popularity
+              <span class="info-badge" tabindex="0" data-tooltip="Max popularity (-100 to 100).">i</span>
+            </label>
+            <input type="number" [(ngModel)]="maxPopularity" placeholder="100">
+          </div>
+          
+          <div></div>
+
+          <div class="form-group full-width relative-container">
+            <label>
+              Themes
+              <span class="info-badge" tabindex="0" data-tooltip="Includes puzzles with ANY of the selected themes.">i</span>
+            </label>
+            <div class="select-trigger" (click)="toggleThemePicker()" [class.active]="showThemePicker()">
+              <span class="placeholder" *ngIf="selectedThemes().length === 0">Select themes...</span>
+              <div class="chips-preview" *ngIf="selectedThemes().length > 0">
+                @for (th of selectedThemes(); track th.id) { <span class="chip-mini">{{ th.label }}</span> }
+              </div>
+              <span class="chevron">▼</span>
+            </div>
+            
+            @if (showThemePicker()) {
+              <div class="picker-panel" (click)="$event.stopPropagation()">
+                <div class="picker-search"><input type="text" [(ngModel)]="themeSearchText" placeholder="Search themes..." autofocus></div>
+                <div class="picker-list">
+                  @for (th of filteredThemes(); track th.id) {
+                    <div class="picker-item" [class.selected]="isThemeSelected(th)" (click)="toggleTheme(th)">
+                      <div class="checkbox">@if (isThemeSelected(th)) { ✓ }</div><span class="label">{{ th.label }}</span>
+                    </div>
+                  }
+                  @if (filteredThemes().length === 0) { <div class="empty-state">No themes found.</div> }
+                </div>
+              </div>
+              <div class="picker-backdrop" (click)="toggleThemePicker()"></div>
+            }
+          </div>
+
+          <div class="form-group full-width relative-container">
+            <label>
+              Openings
+              <span class="info-badge" tabindex="0" data-tooltip="Filter by specific openings.">i</span>
+            </label>
+            <div class="select-trigger" (click)="toggleOpeningPicker()" [class.active]="showOpeningPicker()">
+              <span class="placeholder" *ngIf="selectedOpenings().length === 0">Select openings...</span>
+              <div class="chips-preview" *ngIf="selectedOpenings().length > 0">
+                @for (op of selectedOpenings(); track op) { <span class="chip-mini" [title]="op.name">{{ op.eco }}</span> }
+                <span *ngIf="selectedOpenings().length > 5" style="font-size: 0.8em; color: #666;">(+{{selectedOpenings().length - 5}})</span>
+              </div>
+              <span class="chevron">▼</span>
+            </div>
+
+            @if (showOpeningPicker()) {
+              <div class="picker-panel" (click)="$event.stopPropagation()">
+                <div class="picker-search"><input type="text" [(ngModel)]="openingSearchText" placeholder="Search openings (ECO or Name)..." autofocus></div>
+                <div class="picker-list">
+                  @for (op of filteredOpenings(); track op) {
+                    <div class="picker-item" [class.selected]="isOpeningSelected(op)" (click)="toggleOpening(op)">
+                      <div class="checkbox">@if (isOpeningSelected(op)) { ✓ }</div><span class="eco-badge">{{ op.eco }}</span><span class="label">{{ op.name }}</span>
+                    </div>
+                  }
+                  @if (filteredOpenings().length === 0) { <div class="empty-state">No openings found.</div> }
+                </div>
+              </div>
+              <div class="picker-backdrop" (click)="toggleOpeningPicker()"></div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (activeTab() === 'csv') {
+        <div class="tab-content">
+          
+          <div class="csv-guidelines">
+            <h4><span class="icon">ℹ️</span> CSV Format Guidelines</h4>
+            <p>Your file must be a <strong>.csv</strong> file with the following columns (no header required):</p>
+            <ul>
+              <li><strong>Column 1 (FEN):</strong> The puzzle position (e.g., <code>r1bqk2r/pppp...</code>)</li>
+              <li><strong>Column 2 (Solution):</strong> Moves in UCI format separated by spaces (e.g., <code>e2e4 e7e5</code>)</li>
+              <li><strong>Column 3 (Comment):</strong> Optional text or description.</li>
+            </ul>
+            <div class="code-example">
+              <code>r1bqk... - - 0 1,e2e4 e7e5,Easy Mate in 1</code>
+            </div>
+          </div>
+
+          <div class="form-group file-input-group">
+            <label for="csvFile">Select CSV File</label>
+            <input type="file" id="csvFile" (change)="onFileSelected($event)" accept=".csv">
+          </div>
+
+          @if (csvError()) {
+            <div class="error-message">
+              ⚠️ {{ csvError() }}
+            </div>
+          } @else if (selectedFileName()) {
+            <div class="file-success">
+              ✅ Ready to import: <strong>{{ selectedFileName() }}</strong>
+            </div>
+          }
+
+        </div>
+      }
+
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="close()">Cancel</button>
+      
+      @if (activeTab() === 'db') {
+        <button class="btn btn-success" (click)="startDbImport()" [disabled]="isImporting()">
+          {{ isImporting() ? 'Importing...' : 'Import Puzzles' }}
+        </button>
+      }
+
+      @if (activeTab() === 'csv') {
+        <button class="btn btn-primary" (click)="startCsvImport()" [disabled]="isImporting() || !csvContent() || csvError()">
+          {{ isImporting() ? 'Importing...' : 'Import CSV' }}
+        </button>
+      }
+    </div>
+
+  </div>
+</div>

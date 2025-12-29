@@ -1,0 +1,86 @@
+<div class="board-editor-container">
+  
+  <div class="board-area">
+    <div class="spare spare-top">
+      <div class="spare-piece trash" 
+           [class.selected]="selectedTool() === 'trash'"
+           (click)="selectTool('trash')"
+           title="Trash / Remove Piece">
+        <i class="fas fa-trash"></i>
+      </div>
+
+      <div *ngFor="let role of roles" 
+           class="spare-piece black"
+           [class.selected]="selectedTool() !== 'trash' && selectedTool() !== 'pointer' && $any(selectedTool())?.role === role && $any(selectedTool())?.color === 'black'"
+           (click)="selectTool({color: 'black', role: role})">
+        <div class="piece {{ role }} black"></div>
+      </div>
+    </div>
+
+    <div class="board-wrap">
+      <div #board class="chessground brown cburnett"></div>
+    </div>
+
+    <div class="spare spare-bottom">
+      <div class="spare-piece pointer" 
+           [class.selected]="selectedTool() === 'pointer'"
+           (click)="selectTool('pointer')"
+           title="Move pieces / Select">
+        <i class="fas fa-mouse-pointer"></i>
+      </div>
+
+      <div *ngFor="let role of roles" 
+           class="spare-piece white"
+           [class.selected]="selectedTool() !== 'trash' && selectedTool() !== 'pointer' && $any(selectedTool())?.role === role && $any(selectedTool())?.color === 'white'"
+           (click)="selectTool({color: 'white', role: role})">
+        <div class="piece {{ role }} white"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="editor-controls">
+    
+    <div class="control-group">
+      <label>Color to play</label>
+      <div class="btn-group">
+        <button [class.active]="turnColor() === 'white'" (click)="setTurn('white')">White</button>
+        <button [class.active]="turnColor() === 'black'" (click)="setTurn('black')">Black</button>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label>Castling Rights</label>
+      <div class="castling-options">
+        <label *ngFor="let opt of castlingOptions">
+          <input type="checkbox" 
+                 [checked]="castlingRights()[opt.key]" 
+                 (change)="toggleCastling(opt.key, $event)">
+          {{ opt.label }}
+        </label>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label>Board Actions</label>
+      <div class="actions">
+        <button class="btn btn-full" (click)="startPosition()">Reset to Start</button>
+        <button class="btn" (click)="clearBoard()">Clear Board</button>
+        <button class="btn" (click)="flipBoard()">Flip Board</button>
+      </div>
+    </div>
+
+    <div class="control-group input-display">
+      <label>FEN (Forsyth-Edwards Notation)</label>
+      <input type="text" 
+             [ngModel]="currentFen()" 
+             (ngModelChange)="onManualFenInput($event)"
+             (click)="$any($event.target).select()"
+             placeholder="Paste FEN here...">
+    </div>
+    
+    <div *ngIf="!isPositionValid()" style="color: #dc3545; font-size: 0.9rem; padding: 10px; background: #ffe6e6; border-radius: 4px; border: 1px solid #f5c6cb;">
+      <i class="fas fa-exclamation-triangle"></i> Invalid Position
+    </div>
+
+  </div>
+</div>

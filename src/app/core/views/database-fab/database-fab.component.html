@@ -1,0 +1,97 @@
+<div class="fab-wrapper">
+  @if (showBubble()) {
+    <div class="info-bubble">
+      Hey! Install the database to unlock all features
+    </div>
+  }
+
+  <div class="fab-menu" [class.active]="isExpanded()">
+    
+    <div class="db-status-panel">
+      <div class="info-row">
+        <i class="fas fa-database"></i>
+        @if (dbService.dbStatus()?.dbExists) {
+          <span class="text-success">
+            {{ dbService.dbStatus()?.puzzleCount?.toLocaleString() }} puzzles
+          </span>
+          
+          @if (dbService.isCheckingUpdate()) {
+             <small class="update-tag checking">Checking...</small>
+          } @else if (!dbService.isUpdateAvailable()) {
+             <small class="update-tag up-to-date"><i class="fas fa-check"></i> Up to date</small>
+          }
+        } @else {
+          <span class="text-danger">Database Not Installed</span>
+        }
+      </div>
+
+      @if (dbService.isDownloadingDb()) {
+        <div class="progress-section">
+          <p class="status-label">Downloading...</p>
+          <progress [value]="dbService.downloadProgress()?.downloaded" [max]="dbService.downloadProgress()?.total"></progress>
+          <small>{{ formatBytes(dbService.downloadProgress()?.downloaded) }} / {{ formatBytes(dbService.downloadProgress()?.total) }}</small>
+        </div>
+      }
+
+      @if (dbService.isIndexingDb()) {
+        <div class="progress-section">
+          <p class="status-label"><i class="fas fa-spinner fa-spin"></i> Indexing...</p>
+          <small>{{ dbService.indexingProgress() }}</small>
+        </div>
+      }
+
+      @if (cleanupStatus(); as status) {
+        <div class="cleanup-feedback" [class.error]="status.isError">
+          <i class="fas" [class.fa-check-circle]="!status.isError" [class.fa-times-circle]="status.isError"></i>
+          {{ status.message }}
+        </div>
+      }
+
+      @if (dbService.dbError()) {
+        <p class="text-danger" style="font-size: 0.8rem; margin-top: 5px;">{{ dbService.dbError() }}</p>
+      }
+    </div>
+
+    <hr class="menu-divider">
+
+    <button class="menu-item clean-btn" (click)="cleanDb()" [disabled]="dbService.isUpdating() || isCleaning() || !dbService.isInstalled()">
+      <i class="fas" [class.fa-broom]="!isCleaning()" [class.fa-spinner]="isCleaning()" [class.fa-spin]="isCleaning()"></i> 
+      Clean Database
+    </button>
+
+    <button 
+      class="menu-item" 
+      (click)="dbService.startDatabaseDownloadAndIndex()" 
+      [disabled]="dbService.isUpdating() || (dbService.isInstalled() && !dbService.isUpdateAvailable())"
+      [class.btn-highlight]="dbService.isUpdateAvailable() && dbService.isInstalled()"
+    >
+      <i class="fas fa-sync" [class.fa-spin]="dbService.isUpdating()"></i> 
+      @if (!dbService.isInstalled()) {
+        Install Database
+      } @else if (dbService.isUpdateAvailable()) {
+        Update Available
+      } @else {
+        Database Up to Date
+      }
+    </button>
+  </div>
+
+  <button 
+    class="main-fab" 
+    [class.missing]="!dbService.isInstalled()" 
+    (click)="toggleMenu()"
+    [attr.data-tooltip]="dbService.isInstalled() ? 'Manage Database' : 'Install Database'"
+  >
+    @if (!dbService.isInstalled()) {
+      <i class="fas fa-exclamation-triangle"></i> 
+    } @else if (dbService.isUpdating()) {
+      <i class="fas fa-spinner fa-spin"></i>
+    } @else {
+      <i class="fas fa-database"></i>
+    }
+    
+    @if (!dbService.isInstalled() || dbService.dbError()) {
+      <span class="notification-badge"></span> 
+    }
+  </button>
+</div>

@@ -1,0 +1,79 @@
+<div class="analyse" [style.--board-width.px]="boardWidth()">
+  
+  <div class="analyse__board-col">
+    
+    <div class="cg-wrap">
+      <div #board class="chessground brown cburnett"></div>
+      
+      @if (promotionData(); as data) {
+        <div class="promotion-dialog">
+          @for (piece of promotionChoices; track piece) {
+            <div 
+              class="promotion-piece {{data.color}} {{piece}}"
+              (click)="onPromotionSelect(piece)">
+            </div>
+          }
+        </div>
+      }
+      
+      <div class="resize-handle" (mousedown)="onResizeStart($event)" title="Drag to resize"></div>
+    </div>
+
+    <div class="analyse__controls">
+      <div class="jumps">
+        <button class="btn-control" (click)="reset()" title="Start" [disabled]="currentNode() === rootNode">
+          <i class="fas fa-fast-backward"></i>
+        </button>
+        <button class="btn-control" (click)="prev()" title="Previous" [disabled]="currentNode() === rootNode">
+          <i class="fas fa-step-backward"></i>
+        </button>
+        <button class="btn-control" (click)="next()" title="Next" [disabled]="currentNode().children.length === 0">
+          <i class="fas fa-step-forward"></i>
+        </button>
+        <button class="btn-control" (click)="jumpToEnd()" title="End of variation" [disabled]="currentNode().children.length === 0">
+          <i class="fas fa-fast-forward"></i>
+        </button>
+        <button class="btn-control" (click)="flipBoard()" title="Flip Board">
+          <i class="fas fa-retweet"></i>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="analyse__tools">
+    <div class="panel">
+      <div class="panel-header">
+        <i class="fas fa-chess-board"></i> Analysis
+      </div>
+      <div class="moves-list">
+        <ng-container *ngTemplateOutlet="nodeView; context: { nodes: rootNode.children, inline: false }"></ng-container>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<ng-template #nodeView let-nodes="nodes" let-inline="inline">
+  <ng-container *ngFor="let node of nodes; let i = index">
+    <div *ngIf="i > 0" class="variation-bracket">
+      (
+      <ng-container *ngTemplateOutlet="singleNode; context: { node: node, showIndex: true }"></ng-container>
+      <ng-container *ngTemplateOutlet="nodeView; context: { nodes: node.children, inline: true }"></ng-container>
+      )
+    </div>
+    <ng-container *ngIf="i === 0">
+      <ng-container *ngTemplateOutlet="singleNode; context: { node: node, showIndex: !inline || node.ply % 2 !== 0 }"></ng-container>
+      <ng-container *ngTemplateOutlet="nodeView; context: { nodes: node.children, inline: inline }"></ng-container>
+    </ng-container>
+  </ng-container>
+</ng-template>
+
+<ng-template #singleNode let-node="node" let-showIndex="showIndex">
+  <span class="move-element" [class.active]="node === currentNode()" (click)="jumpTo(node)">
+    <span class="index" *ngIf="showIndex">
+      {{ Math.ceil(node.ply / 2) }}{{ node.ply % 2 !== 0 ? '.' : '...' }}
+    </span>
+    <span class="san">{{ node.san }}</span>
+  </span>
+</ng-template>

@@ -1,0 +1,159 @@
+<div class="browse-container">
+  
+  <header class="deck-header">
+    <div class="header-top">
+      <h2>{{ deckName() }}</h2>
+      <a routerLink="/decks" class="btn-back"><i class="fas fa-arrow-left"></i> Back</a>
+    </div>
+
+    <div class="header-controls">
+      
+      <div class="search-wrapper">
+        <div class="search-input-group">
+          <i class="fas fa-search search-icon"></i>
+          <input 
+            type="text" 
+            [ngModel]="searchTerm()" 
+            (ngModelChange)="onSearch($event)" 
+            placeholder="Search themes, openings or rating..."
+            class="search-input">
+          
+          <button class="btn-help" (click)="toggleSearchHelp()" title="Search Syntax Help">
+            <i class="fas fa-question-circle"></i>
+          </button>
+        </div>
+
+        <div class="search-help-popup" *ngIf="showSearchHelp()">
+          <div class="help-header">
+            <h4>Search Syntax</h4>
+            <button (click)="toggleSearchHelp()"><i class="fas fa-times"></i></button>
+          </div>
+          <ul class="help-list">
+            <li>
+              <span class="code">Sicilian</span> 
+              <span class="desc">Text search (ID, Themes, Openings...)</span>
+            </li>
+            <li>
+              <span class="code">1500</span> 
+              <span class="desc">Rating range approx (+/- 50)</span>
+            </li>
+            <li>
+              <span class="code">1000-1200</span> 
+              <span class="desc">Exact Rating range (Min-Max)</span>
+            </li>
+            <li>
+              <span class="code">&gt;2000</span> 
+              <span class="desc">Rating greater than 2000</span>
+            </li>
+            <li>
+              <span class="code">&lt;1500</span> 
+              <span class="desc">Rating less than 1500</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="sort-group">
+        <label>Sort by:</label>
+        <select [ngModel]="sortBy()" (ngModelChange)="onSort($event)">
+          <option value="default">Newest Added</option>
+          <option value="rating-desc">Highest Rating</option>
+          <option value="rating-asc">Lowest Rating</option>
+          <option value="popularity">Popularity</option>
+        </select>
+      </div>
+
+      <a [routerLink]="['/deck', deckId, 'add-card']" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Add Card
+      </a>
+    </div>
+  </header>
+
+  <div class="content-area">
+    
+    @if (isLoading() && allLoadedCards().length === 0) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading cards...</p>
+      </div>
+    } @else if (errorMessage()) {
+      <div class="error-state">
+        <i class="fas fa-exclamation-circle"></i>
+        <p>{{ errorMessage() }}</p>
+      </div>
+    } @else if (allLoadedCards().length === 0) {
+      <div class="empty-state">
+        <i class="fas fa-chess-board"></i>
+        <p>No cards found matching your criteria.</p>
+        @if (searchTerm()) {
+          <button class="btn btn-link" (click)="onSearch('')">Clear Search</button>
+        }
+      </div>
+    } @else {
+      <div class="cards-grid">
+        @for (card of filteredCards(); track card.cardId) {
+          <div class="card-item">
+            <div class="card-header">
+              <span class="card-id">{{ card.puzzleId | truncate:8}}</span>
+              <div class="card-actions">
+                <button (click)="editCard(card.cardId)" title="Edit">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button (click)="deleteCardNote(card.noteId)" title="Delete" class="btn-delete">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </div>
+
+            <app-chess-thumbnail 
+              [fen]="card.fen" 
+              [orientation]="getOrientation(card.fen)"
+              [solution]="card.solution">
+            </app-chess-thumbnail>
+
+            <div class="card-info">
+              <div class="info-row">
+                <span class="badge rating" title="Rating">
+                  <i class="fas fa-trophy"></i> {{ card.rating }}
+                </span>
+                <span class="badge popularity" title="Popularity">
+                  <i class="fas fa-fire"></i> {{ card.popularity }}
+                </span>
+              </div>
+              
+              @if (card.themes) {
+                <div class="themes" title="{{ card.themes }}">
+                  {{ card.themes }}
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      @if (allLoadedCards().length < totalCards()) {
+        <div class="load-more-container">
+          <button class="btn btn-secondary" (click)="loadMore()" [disabled]="isLoadingMore()">
+            @if (isLoadingMore()) {
+              <i class="fas fa-spinner fa-spin"></i> Loading...
+            } @else {
+              Load More ({{ totalCards() - allLoadedCards().length }} remaining)
+            }
+          </button>
+        </div>
+      }
+    }
+  </div>
+@if (showModal()) {
+  <app-modal 
+      [title]="modalTitle()" 
+      [message]="modalMessage()" 
+      [confirmText]="modalConfirmText()" 
+      [cancelText]="modalCancelText()"
+      (confirm)="onConfirm()" 
+      (cancel)="closeModal()"
+      (close)="closeModal()">
+    
+  </app-modal>
+  }
+</div>

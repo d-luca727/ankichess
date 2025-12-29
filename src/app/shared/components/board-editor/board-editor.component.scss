@@ -1,0 +1,233 @@
+:host {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.board-editor-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 30px;
+  width: 100%;
+  max-width: 100%;
+  align-items: start;
+}
+
+.board-area {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 550px; 
+  margin: 0 auto; 
+}
+
+.spare {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 5px;
+  background: #e9ecef;
+  padding: 8px;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.spare-piece {
+  width: 40px; 
+  height: 40px;
+  position: relative;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  border: 2px solid transparent;
+  background: #fff; 
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+
+  &:hover { 
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+  }
+  
+  &.selected { 
+    background: #e3f2fd; 
+    border-color: #2196f3;
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.3);
+  }
+
+  .piece {
+    width: 100%;
+    height: 100%;
+    background-size: 85%; 
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+  
+  i { font-size: 1.1rem; color: #555; }
+}
+
+.board-wrap {
+  width: 100%;
+  aspect-ratio: 1; 
+  position: relative;
+  
+  box-shadow: 0 0 0 5px #dcdcdc, 0 5px 15px rgba(0,0,0,0.15); 
+  border-radius: 3px;
+  margin: 5px 0;
+  background: #dcdcdc; 
+}
+
+.chessground {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.editor-controls {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  padding: 25px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+  box-sizing: border-box;
+  min-width: 0; 
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  label { 
+    font-weight: 700; 
+    font-size: 0.9rem; 
+    color: #495057;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+}
+
+input[type="text"], 
+textarea {
+  width: 100%;
+  box-sizing: border-box; 
+  padding: 10px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-family: 'Roboto Mono', monospace; 
+  font-size: 0.85rem;
+  background: #f8f9fa;
+  color: #212529;
+
+  &:focus {
+    outline: none;
+    background: #fff;
+    border-color: #80bdff;
+    box-shadow: 0 0 0 3px rgba(0,123,255,0.15);
+  }
+}
+
+.castling-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 6px;
+  border: 1px solid #eee;
+
+  label {
+    font-weight: 500;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    text-transform: none;
+    letter-spacing: normal;
+    color: #333;
+  }
+  
+  input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+  }
+}
+
+.btn-group {
+  display: flex;
+  width: 100%;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  border-radius: 4px;
+  overflow: hidden;
+  
+  button {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #ced4da;
+    background: #fff;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+    
+    &:not(:first-child) { border-left: none; }
+
+    &.active { 
+      background: #007bff; 
+      color: white; 
+      border-color: #007bff; 
+    }
+    
+    &:hover:not(.active) { background: #f1f3f5; }
+  }
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+
+  .btn {
+    padding: 10px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: #6c757d;
+    color: white;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background 0.2s;
+    text-align: center;
+
+    &:hover { background: #5a6268; }
+    
+    &.btn-full { 
+      grid-column: span 2; 
+      background-color: #343a40;
+      &:hover { background-color: #23272b; }
+    }
+  }
+}
+
+.piece.pawn.white { background-image: url('https://lichess1.org/assets/piece/cburnett/wP.svg'); }
+.piece.knight.white { background-image: url('https://lichess1.org/assets/piece/cburnett/wN.svg'); }
+.piece.bishop.white { background-image: url('https://lichess1.org/assets/piece/cburnett/wB.svg'); }
+.piece.rook.white { background-image: url('https://lichess1.org/assets/piece/cburnett/wR.svg'); }
+.piece.queen.white { background-image: url('https://lichess1.org/assets/piece/cburnett/wQ.svg'); }
+.piece.king.white { background-image: url('https://lichess1.org/assets/piece/cburnett/wK.svg'); }
+.piece.pawn.black { background-image: url('https://lichess1.org/assets/piece/cburnett/bP.svg'); }
+.piece.knight.black { background-image: url('https://lichess1.org/assets/piece/cburnett/bN.svg'); }
+.piece.bishop.black { background-image: url('https://lichess1.org/assets/piece/cburnett/bB.svg'); }
+.piece.rook.black { background-image: url('https://lichess1.org/assets/piece/cburnett/bR.svg'); }
+.piece.queen.black { background-image: url('https://lichess1.org/assets/piece/cburnett/bQ.svg'); }
+.piece.king.black { background-image: url('https://lichess1.org/assets/piece/cburnett/bK.svg'); }

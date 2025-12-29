@@ -1,0 +1,15 @@
+/* src/styles.css */
+@import './assets/chessground.css';
+
+/* (o il nome del file del tema che hai copiato, es: blue.css) */
+
+/* ...Il resto dei tuoi stili... */
+@import '@lichess-org/chessground/assets/chessground.base.css';
+@import '@lichess-org/chessground/assets/chessground.brown.css';
+@import '@lichess-org/chessground/assets/chessground.cburnett.css';
+
+
+
+/* NUOVO: Import per gli stili UI comuni 
+*/
+@import './assets/styles/ui.css';

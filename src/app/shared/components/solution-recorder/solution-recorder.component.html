@@ -1,0 +1,28 @@
+<div class="recorder-container">
+  <div class="board-wrapper">
+    <div #board class="chessground brown cburnett"></div>
+    @if (promotionData(); as data) {
+      <div class="promotion-dialog">
+        @for (piece of promotionChoices; track piece) {
+          <div class="promotion-piece {{data.color}} {{piece}}" (click)="onPromotionSelect(piece)"></div>
+        }
+      </div>
+    }
+  </div>
+  <div class="recorder-controls">
+    <button class="ctrl-btn" (click)="reset()" [disabled]="currentIndex() === 0"><i class="fas fa-fast-backward"></i></button>
+    <button class="ctrl-btn" (click)="prev()" [disabled]="currentIndex() === 0"><i class="fas fa-step-backward"></i></button>
+    <button class="ctrl-btn" (click)="next()" [disabled]="currentIndex() === history().length - 1"><i class="fas fa-step-forward"></i></button>
+    <button class="ctrl-btn" (click)="jumpToEnd()" [disabled]="currentIndex() === history().length - 1"><i class="fas fa-fast-forward"></i></button>
+    <button class="ctrl-btn" (click)="flip()"><i class="fas fa-retweet"></i></button>
+  </div>
+  <div class="history-list">
+    <div class="history-grid">
+      @for (step of history(); track $index) {
+        @if (step.san) {
+          <span class="history-move" [class.active]="currentIndex() === $index" (click)="goTo($index)">{{ step.san }}</span>
+        }
+      }
+    </div>
+  </div>
+</div>

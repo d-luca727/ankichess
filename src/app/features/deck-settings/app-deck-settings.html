@@ -1,0 +1,50 @@
+<div class="modal-overlay" (click)="closeModal.emit()">
+  <div class="modal-content settings-modal" (click)="$event.stopPropagation()">
+    <h3>Settings: {{ deckName() }}</h3>
+    <hr>
+
+    @if (isLoading()) {
+      <div class="loading-container">
+        <i class="fas fa-spinner fa-spin"></i> Loading settings...
+      </div>
+    } @else {
+      <form (ngSubmit)="saveSettings()">
+        <div class="form-group">
+          <label for="newLimit">New cards per day:</label>
+          <input
+            id="newLimit"
+            type="number"
+            min="0"
+            class="form-control"
+            [(ngModel)]="newCardsPerDay"
+            name="newLimit"
+            required
+          />
+          <small>Max new cards introduced each day.</small>
+        </div>
+
+        <div class="form-group">
+          <label for="reviewLimit">Maximum reviews per day:</label>
+          <input
+            id="reviewLimit"
+            type="number"
+            min="0"
+            class="form-control"
+            [(ngModel)]="reviewsPerDay"
+            name="reviewLimit"
+            required
+          />
+          <small>Max cards to review shown each day.</small>
+        </div>
+
+        @if (errorMessage()) { <div class="error-message">{{ errorMessage() }}</div> }
+        @if (successMessage()) { <div class="success-message">{{ successMessage() }}</div> }
+
+        <div class="modal-actions">
+           <button type="submit" class="btn btn-primary" [disabled]="isLoading()">Save Settings</button>
+           <button type="button" (click)="closeModal.emit()" class="btn btn-secondary">Cancel</button>
+        </div>
+      </form>
+    }
+  </div>
+</div>
